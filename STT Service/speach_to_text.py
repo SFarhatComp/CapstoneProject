@@ -1,6 +1,5 @@
-import vosk
-import sys
 import os
+import vosk
 import pyaudio
 
 # Set up the Vosk model and recognizer
@@ -27,7 +26,3 @@ while True:
         else:
             print(recognizer.PartialResult())
 
-# Cleanup
-stream.stop_stream()
-stream.close()
-audio_input.terminate()
