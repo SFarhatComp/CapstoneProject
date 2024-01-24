@@ -1,12 +1,14 @@
 import requests
 import json
 import pika
-
+import pprint
 URL = "http://localhost:5000/translate"
 
 def translate(ch, method, properties, body):
+    
     text_to_translate = body.decode()
-    print(f"Translating: {text_to_translate}")
+    # print(f"Translating: {text_to_translate}")
+    
     # Your data payload
     data = {
         "q": text_to_translate,
@@ -23,7 +25,8 @@ def translate(ch, method, properties, body):
     if response.status_code == 200:
         # Parse the response
         translated_text = response.json()
-        print(translated_text)
+        inner_json = json.loads(translated_text['translatedText'])
+        print(f"Translated : {inner_json['texte']} ")
     else:
         print("Failed to translate. Status code:", response.status_code)
 
