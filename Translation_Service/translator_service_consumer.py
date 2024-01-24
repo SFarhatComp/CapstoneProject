@@ -25,8 +25,9 @@ def translate(ch, method, properties, body):
     if response.status_code == 200:
         # Parse the response
         translated_text = response.json()
-        inner_json = json.loads(translated_text['translatedText'])
-        print(f"Translated : {inner_json['texte']} ")
+        print(translated_text)
+        #inner_json = json.loads(translated_text['translatedText'])
+        #print(f"Translated : {inner_json['texte']} ")
     else:
         print("Failed to translate. Status code:", response.status_code)
 

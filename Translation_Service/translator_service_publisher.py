@@ -9,7 +9,7 @@ import pyaudio
 def general_set_up():
     
     # Set up the Vosk model and recognizer
-    model_path = "/home/briquet/Desktop/Capstone/CapstoneProject/Models/vosk-model-small-en-us-0.15"
+    model_path = "/home/admin/Desktop/CapstoneProject/Models/vosk-model-small-en-us-0.15"
     if not os.path.exists(model_path):
         print("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
         exit(1) 
