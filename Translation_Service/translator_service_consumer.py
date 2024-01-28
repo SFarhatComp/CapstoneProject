@@ -38,7 +38,15 @@ def main():
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    channel.queue_declare(queue='translate')
+    # Declare the queue (this will only create it if it doesn't already exist)
+    queue_name = 'translate'
+    channel.queue_declare(queue=queue_name)
+
+
+    # Declare the exchange (this will only create it if it doesn't already exist)
+    exchange_name = 'translate_exchange'
+    channel.queue_bind(exchange=exchange_name, queue=queue_name)
+
 
     channel.basic_qos(prefetch_count=1)
     channel.basic_consume(queue='translate', on_message_callback=translate)

@@ -9,7 +9,7 @@ import pyaudio
 def general_set_up():
     
     # Set up the Vosk model and recognizer
-    model_path = "/home/admin/Desktop/CapstoneProject/Models/vosk-model-small-en-us-0.15"
+    model_path = "Models/vosk-model-small-en-us-0.15"
     if not os.path.exists(model_path):
         print("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
         exit(1) 
@@ -29,8 +29,10 @@ def send_message(recognizer,stream):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    # Declare the queue (this will only create it if it doesn't already exist)
-    channel.queue_declare(queue='translate')
+    # Declare the exchange (this will only create it if it doesn't already exist)
+    exchange_name = 'translate_exchange'
+    channel.exchange_declare(exchange=exchange_name, exchange_type='fanout')
+
     print(f"Starting Input from Mic : ")
     while True:
         
@@ -41,7 +43,8 @@ def send_message(recognizer,stream):
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
                     print(result)
-                    channel.basic_publish(exchange='', routing_key='translate', body=result)
+                    # Sending a message to the Exchange
+                    channel.basic_publish(exchange=exchange_name, routing_key='', body=result)
 
         except KeyboardInterrupt:
             print("\nInterrupted by user. Stopping...")
