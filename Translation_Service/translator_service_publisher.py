@@ -29,8 +29,10 @@ def send_message(recognizer,stream):
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
 
-    # Declare the queue (this will only create it if it doesn't already exist)
-    channel.queue_declare(queue='translate')
+    # Declare the exchange (this will only create it if it doesn't already exist)
+    exchange_name = 'translate_exchange'
+    channel.exchange_declare(exchange=exchange_name, exchange_type='fanout')
+
     print(f"Starting Input from Mic : ")
     while True:
         
@@ -41,7 +43,8 @@ def send_message(recognizer,stream):
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
                     print(result)
-                    channel.basic_publish(exchange='', routing_key='translate', body=result)
+                    # Sending a message to the Exchange
+                    channel.basic_publish(exchange=exchange_name, routing_key='', body=result)
 
         except KeyboardInterrupt:
             print("\nInterrupted by user. Stopping...")
