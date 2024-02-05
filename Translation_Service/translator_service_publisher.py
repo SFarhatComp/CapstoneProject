@@ -6,9 +6,11 @@ import termios
 import os
 import vosk
 import pyaudio
-import websockets       
+import websockets     
+import json  
             
 async def audio_stream(websocket, path, recognizer):
+    print(f"New connection established from {websocket.remote_address}")
     # Establish a connection with RabbitMQ server
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
     channel = connection.channel()
