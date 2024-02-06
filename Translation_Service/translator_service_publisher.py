@@ -1,4 +1,5 @@
 import pika
+import threading
 import os
 import vosk
 import pyaudio
@@ -20,8 +21,12 @@ app.add_middleware(
 )
 
 class Item(BaseModel):
+    id: int
     name : str
     language: str
+
+
+status_var = False
 
 
 def general_set_up(language):
@@ -55,12 +60,9 @@ def send_message(recognizer,stream):
     exchange_name = 'translate_exchange'
     channel.exchange_declare(exchange=exchange_name, exchange_type='fanout')
 
-    print(f"Starting Input from Mic : ")
-    while True:
-        
+    while status_var:
         try:
-            data = stream.read(8000) 
-        
+            data = stream.read(8000)         
             if len(data) > 0:
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
@@ -72,26 +74,36 @@ def send_message(recognizer,stream):
             print("\nInterrupted by user. Stopping...")
             break
     # Send a message to the 'translate' queue
-
-    # Close the connection
-    connection.close()
+    print("Closing the connection")
+    
 
 @app.post("/speak")
 async def speak(item: Item):
-    # Your existing code to set up and send message
-    recognizer, stream = general_set_up(item.language)
-    print("Starting to send messages...")
-    send_message(recognizer, stream)
+    print("Received request to speak")
+    print("\n\n")
+    global status_var
+    
+    if not status_var:
+        # Your existing code to set up and send message
+        recognizer, stream = general_set_up(item.language)
+        status_var = True 
+        thread = threading.Thread(target=send_message, args=(recognizer, stream))
+        thread.start()
+        
+    else:
+        #Stop process. 
+        print("Stopping to send messages...")
+        status_var = False
 
     return {"success": True}
 
 
+   
 if __name__== "__main__":
+    
     import uvicorn
     uvicorn.run(app, host="localhost", port=8000)
     
 
 
-    
-    
-    
+

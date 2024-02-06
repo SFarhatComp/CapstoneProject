@@ -2,7 +2,6 @@
 import requests
 import json
 import pika
-import pprint
 
 URL = "http://localhost:5000/translate"
 
