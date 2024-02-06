@@ -1,19 +1,28 @@
 import pika
-import sys
-import tty
-import termios
 import os
 import vosk
 import pyaudio
+from fastapi import FastAPI
+from pydantic import BaseModel
 
-def general_set_up():
+app = FastAPI()
+class Item(BaseModel):
+    name : str
+    language: str
+
+
+def general_set_up(language):
     
-    # Set up the Vosk model and recognizer
-    model_path = "Models/vosk-model-small-en-us-0.15"
-    if not os.path.exists(model_path):
-        print("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
-        exit(1) 
-
+    if language == "en":
+        # Set up the Vosk model and recognizer
+        model_path = "Models/vosk-model-small-en-us-0.15"
+        if not os.path.exists(model_path):
+            print("Please download the model from https://alphacephei.com/vosk/models and unpack as 'model' in the current folder.")
+            exit(1) 
+    else:
+        print("Language not supported")
+        return
+    
     # Initialize the Vosk recognizer with the model
     vosk.SetLogLevel(-1)
     recognizer = vosk.KaldiRecognizer(vosk.Model(model_path), 16000)
@@ -54,13 +63,19 @@ def send_message(recognizer,stream):
     # Close the connection
     connection.close()
 
+@app.post("/speak")
+async def speak(item: Item):
+    # Your existing code to set up and send message
+    recognizer, stream = general_set_up(item.language)
+    print("Starting to send messages...")
+    send_message(recognizer, stream)
+
+    return {"success": True}
+
 
 if __name__== "__main__":
-    
-    # Set ups
-    recognizer, stream = general_set_up()
-    print("Starting to send messages...")
-    send_message(recognizer,stream)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
 
 
 
