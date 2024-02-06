@@ -4,8 +4,21 @@ import vosk
 import pyaudio
 from fastapi import FastAPI
 from pydantic import BaseModel
-
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",  # Replace with the origin of your frontend
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 class Item(BaseModel):
     name : str
     language: str
@@ -75,8 +88,8 @@ async def speak(item: Item):
 
 if __name__== "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
-
+    uvicorn.run(app, host="localhost", port=8000)
+    
 
 
     
