@@ -1,3 +1,5 @@
+aio-pika==9.4.0
+aiormq==6.8.0
 annotated-types==0.6.0
 anyio==4.2.0
 certifi==2023.11.17
@@ -7,7 +9,12 @@ click==8.1.7
 exceptiongroup==1.2.0
 fastapi==0.109.2
 h11==0.14.0
+httpcore==1.0.2
+httpx==0.26.0
 idna==3.6
+multidict==6.0.5
+numpy==1.26.4
+pamqp==3.3.0
 pika==1.3.2
 PyAudio==0.2.14
 pycparser==2.21
@@ -16,6 +23,7 @@ pydantic_core==2.16.2
 pyspellchecker==0.7.3
 requests==2.31.0
 sniffio==1.3.0
+sounddevice==0.4.6
 srt==3.5.3
 starlette==0.36.3
 tqdm==4.66.1
@@ -24,3 +32,4 @@ urllib3==2.1.0
 uvicorn==0.27.0.post1
 vosk==0.3.45
 websockets==12.0
+yarl==1.9.4
