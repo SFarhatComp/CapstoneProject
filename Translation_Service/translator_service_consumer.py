@@ -52,6 +52,7 @@ def genereal_set_up():
 
 def main(language: str = "fr"):
     global channel, exchange_name
+    print("general set up initialized")
     channel, exchange_name = genereal_set_up()
 
     
@@ -76,3 +77,5 @@ async def websocket_endpoint(websocket: WebSocket, language: str = "fr"):
 
 if __name__ == "__main__":
     main()
+    import uvicorn
+    uvicorn.run(app, host="localhost", port=8001)
