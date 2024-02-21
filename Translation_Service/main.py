@@ -1,10 +1,8 @@
 from fastapi import FastAPI, WebSocket
-from threading import Thread
-from websocket_manager import WebSocketConnectionManager
-from rabbitmq import start_rabbitmq_consumer
 from starlette.websockets import WebSocketDisconnect
+from websocket_manager import WebSocketConnectionManager
+from rabbitmq import setup_rabbitmq_consumer
 import asyncio
-import queue as async_queue
 
 app = FastAPI()
 ws_manager = WebSocketConnectionManager()
@@ -12,19 +10,16 @@ ws_manager = WebSocketConnectionManager()
 @app.websocket("/ws/{language}")
 async def websocket_endpoint(websocket: WebSocket, language: str = "fr"):
     await ws_manager.connect(websocket, language)
-    websocket_queue = async_queue.Queue()
-
-    consumer_thread = Thread(target=start_rabbitmq_consumer, args=(language, websocket_queue,))
-    consumer_thread.start()
+    consumer_task = asyncio.create_task(setup_rabbitmq_consumer(language, ws_manager))
 
     try:
         while True:
-            message = await asyncio.get_event_loop().run_in_executor(None, websocket_queue.get)
-            print("Sending message to WebSocket:", message)
-            await ws_manager.broadcast(message, language)
+            # Keeping the connection open
+            await asyncio.sleep(10)
     except WebSocketDisconnect:
-        print("WebSocket disconnected")
         ws_manager.disconnect(websocket, language)
+    finally:
+        consumer_task.cancel()
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,7 +1,12 @@
 from fastapi import WebSocket
+from typing import Dict, Set
+import logging
+import traceback
+logging.basicConfig(level=logging.INFO)
+
 class WebSocketConnectionManager:
     def __init__(self):
-        self.active_connections = {}
+        self.active_connections: Dict[str, Set[WebSocket]] = {}
 
     async def connect(self, websocket: WebSocket, language: str):
         await websocket.accept()
@@ -19,4 +24,3 @@ class WebSocketConnectionManager:
         if language in self.active_connections:
             for connection in self.active_connections[language]:
                 await connection.send_text(message)
-

@@ -1,67 +1,48 @@
+import aio_pika
 import requests
 import json
-import pika
 
 URL = "http://localhost:5000/translate"
 
 class TranslationConsumer:
-    def __init__(self, language, websocket_queue):
-
+    def __init__(self, language, websocket_manager):
         self.language = language
-        self.websocket_queue = websocket_queue
+        self.websocket_manager = websocket_manager
 
-    def translate(self, ch, method, properties, body):
+    async def translate(self, message: aio_pika.IncomingMessage):
+        async with message.process():
+            text_to_translate = message.body.decode()
+            data = {
+                "q": text_to_translate,
+                "source": "en",
+                "target": self.language,
+                "format": "text",
+                "api_key": ""
+            }
+            response = requests.post(URL, json=data)
+            if response.status_code == 200:
+                try:
+                    translated_text = response.json().get("translatedText", "")
+                    if translated_text:
+                        await self.websocket_manager.broadcast(translated_text, self.language)
+                except json.JSONDecodeError:
+                    print("Error parsing the JSON response.")
 
-        text_to_translate = body.decode()
-        data = {
-            "q": text_to_translate,
-            "source": "en",
-            "target": self.language,
-            "format": "text",
-            "api_key": ""
-        }
-        response = requests.post(URL, json=data)
-        if response.status_code == 200:
-            try:
-                translated_data = response.json()
+async def setup_rabbitmq_consumer(language, websocket_manager):
+    connection = await aio_pika.connect_robust("amqp://guest:guest@localhost/")
+    channel = await connection.channel()
 
-                # Extract the 'translatedText' field
-                translated_text_json = translated_data.get("translatedText", "{}")
-
-                # Parse the 'translatedText' string as JSON
-                inner_translated_data = json.loads(translated_text_json)
-
-                # Extract the actual text (e.g., "texte") from the inner JSON
-                actual_translated_text = str(inner_translated_data.get("texte", ""))
-
-                print("Translated text:", actual_translated_text)
-
-                if actual_translated_text:
-                    # Put the actual translated text into the WebSocket queue
-                    self.websocket_queue.put(actual_translated_text)
-                else:
-                    print("No actual translated text found in the response.")
-            except json.JSONDecodeError:
-                print("Error parsing the JSON response.")
-        else:
-            print("Failed to translate. Status code:", response.status_code)
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-
-def general_set_up():
-
-    connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-    channel = connection.channel()
     exchange_name = 'translate_exchange'
-    return channel, exchange_name
+    await channel.declare_exchange(exchange_name, aio_pika.ExchangeType.FANOUT)
 
-def start_rabbitmq_consumer(language, websocket_queue):
+    queue = await channel.declare_queue(exclusive=True)
+    await queue.bind(exchange_name)
+    print("Queue bound to exchange")
+    consumer = TranslationConsumer(language, websocket_manager)
+    await queue.consume(consumer.translate)
 
-    channel, exchange_name = general_set_up()
-    result = channel.queue_declare('', exclusive=True)
-    queue_name = result.method.queue
-    channel.queue_bind(exchange=exchange_name, queue=queue_name)
-    channel.basic_qos(prefetch_count=1)
-    consumer = TranslationConsumer(language, websocket_queue)
-    channel.basic_consume(queue=queue_name, on_message_callback=consumer.translate)
-    channel.start_consuming()
+
+
+
+
 
