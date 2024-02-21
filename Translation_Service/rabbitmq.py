@@ -1,42 +1,8 @@
-from fastapi import FastAPI, WebSocket
-from threading import Thread
 import requests
 import json
 import pika
-import asyncio
-from starlette.websockets import WebSocketDisconnect
-import queue as async_queue
 
-app = FastAPI()
 URL = "http://localhost:5000/translate"
-
-
-
-class WebSocketConnectionManager:
-    def __init__(self):
-        self.active_connections = {}
-
-    async def connect(self, websocket: WebSocket, language: str):
-        await websocket.accept()
-        if language not in self.active_connections:
-            self.active_connections[language] = set()
-        self.active_connections[language].add(websocket)
-
-    def disconnect(self, websocket: WebSocket, language: str):
-        if language in self.active_connections:
-            self.active_connections[language].remove(websocket)
-            if not self.active_connections[language]:
-                del self.active_connections[language]
-
-    async def broadcast(self, message: str, language: str):
-        if language in self.active_connections:
-            for connection in self.active_connections[language]:
-                await connection.send_text(message)
-
-
-
-ws_manager = WebSocketConnectionManager()
-
 
 class TranslationConsumer:
     def __init__(self, language, websocket_queue):
@@ -99,31 +65,3 @@ def start_rabbitmq_consumer(language, websocket_queue):
     channel.basic_consume(queue=queue_name, on_message_callback=consumer.translate)
     channel.start_consuming()
 
-
-
-@app.websocket("/ws/{language}")
-async def websocket_endpoint(websocket: WebSocket, language: str = "fr"):
-    """
-    WebSocket endpoint for receiving and sending translated messages.
-    """
-    await ws_manager.connect(websocket, language)
-    websocket_queue = async_queue.Queue()
-
-    # Start RabbitMQ consumer in a separate thread
-    consumer_thread = Thread(target=start_rabbitmq_consumer, args=(language, websocket_queue,))
-    consumer_thread.start()
-
-    try:
-        while True:
-            # Wait for a message from the RabbitMQ consumer
-            message = await asyncio.get_event_loop().run_in_executor(None, websocket_queue.get)
-            print("Sending message to WebSocket:", message)
-            await ws_manager.broadcast(message, language)
-    except WebSocketDisconnect:
-        print("WebSocket disconnected")
-        ws_manager.disconnect(websocket, language)
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="localhost", port=8001)
