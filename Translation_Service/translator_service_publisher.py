@@ -48,7 +48,7 @@ def general_set_up():
 
     # Set up audio input from microphone
     audio_input = pyaudio.PyAudio()
-    
+    stream = audio_input.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
 
     # Establish a connection with RabbitMQ server
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -58,7 +58,7 @@ def general_set_up():
     exchange_name = 'translate_exchange'
     channel.exchange_declare(exchange=exchange_name, exchange_type='fanout')
 
-    return recognizer, audio_input, exchange_name, channel
+    return recognizer, stream, exchange_name, channel
 
 def send_message(recognizer, stream , exchange_name, channel):
     
@@ -83,17 +83,18 @@ def send_message(recognizer, stream , exchange_name, channel):
 @app.post("/speak")
 async def speak(item: Item):
     global status_var
+    
     if not status_var:
-        stream = audio_input.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
         print("Received request to speak")
-
+        print("Buffer cleared")
+        stream.stop_stream()
+        stream.start_stream()
         # Your existing code to set up and send message
         status_var = True 
         thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
         thread.start()
         
     else:
-        stream.stop_stream()
         #Stop process. 
         print("Stopping to send messages...")
         status_var = False
@@ -102,8 +103,8 @@ async def speak(item: Item):
 
 
 def main():
-    global recognizer, audio_input, exchange_name, chanel , stream
-    recognizer, audio_input, exchange_name, chanel = general_set_up()
+    global recognizer, stream , exchange_name, chanel
+    recognizer, stream , exchange_name, chanel = general_set_up()
     import uvicorn
     uvicorn.run(app, host="localhost", port=8000)
 
