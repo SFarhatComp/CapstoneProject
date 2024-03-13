@@ -14,7 +14,8 @@ class WebSocketConnectionManager:
             self.active_connections[language].remove(websocket)
             if not self.active_connections[language]:
                 del self.active_connections[language]
-
+        
+    
     async def broadcast(self, message: str, language: str):
         if language in self.active_connections:
             for connection in self.active_connections[language]:

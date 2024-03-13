@@ -15,12 +15,12 @@ recognizer, stream , exchange_name, chanel = None, None, None, None
 
 
 origins = [
-    "http://localhost:5173",  # Replace with the origin of your frontend
+    "http://raspberrypi.localra:5173",  # Replace with the origin of your frontend
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -104,7 +104,7 @@ def main():
     global recognizer, stream , exchange_name, chanel
     recognizer, stream , exchange_name, chanel = general_set_up()
     import uvicorn
-    uvicorn.run(app, host="localhost", port=8000)
+    uvicorn.run(app, host="192.168.4.1", port=8000)
 
 if __name__== "__main__":
     main()
