@@ -83,10 +83,12 @@ def send_message(recognizer, stream , exchange_name, channel):
 @app.post("/speak")
 async def speak(item: Item):
     global status_var
-
+    
     if not status_var:
         print("Received request to speak")
-
+        print("Buffer cleared")
+        stream.stop_stream()
+        stream.start_stream()
         # Your existing code to set up and send message
         status_var = True 
         thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
