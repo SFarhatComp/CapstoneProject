@@ -1,4 +1,5 @@
 import aio_pika
+import httpx
 import requests
 import json
 
@@ -19,14 +20,19 @@ class TranslationConsumer:
                 "format": "text",
                 "api_key": ""
             }
-            response = requests.post(URL, json=data)
-            if response.status_code == 200:
-                try:
-                    translated_text = response.json().get("translatedText", "")
-                    if translated_text:
-                        await self.websocket_manager.broadcast(translated_text, self.language)
-                except json.JSONDecodeError:
-                    print("Error parsing the JSON response.")
+            async with httpx.AsyncClient() as client:
+                response = await client.post(URL, json=data)
+                if response.status_code == 200:
+                    try:
+                        response_data = response.json()
+                        translated_text_json = response_data.get("translatedText", "")
+                        if translated_text_json:
+                            translated_text_data = json.loads(translated_text_json)
+                            translated_text = translated_text_data.get("texte", "")
+                            if translated_text:
+                                await self.websocket_manager.broadcast(translated_text, self.language)
+                    except json.JSONDecodeError:
+                        print("Error parsing the JSON response.")
 
 async def setup_rabbitmq_consumer(language, websocket_manager):
     connection = await aio_pika.connect_robust("amqp://guest:guest@localhost/")

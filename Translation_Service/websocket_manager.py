@@ -22,5 +22,13 @@ class WebSocketConnectionManager:
 
     async def broadcast(self, message: str, language: str):
         if language in self.active_connections:
+            disconnected_websockets = set()
             for connection in self.active_connections[language]:
-                await connection.send_text(message)
+                try:
+                    await connection.send_text(message)
+                except Exception as e:
+                    logging.error(f"Error sending message: {e}")
+                    disconnected_websockets.add(connection)
+            
+            for connection in disconnected_websockets:
+                self.disconnect(connection, language)
