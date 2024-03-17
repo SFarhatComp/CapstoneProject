@@ -7,9 +7,10 @@ import asyncio
 import queue as async_queue
 
 app = FastAPI()
+
 ws_manager = WebSocketConnectionManager()
 
-@app.websocket("/ws/{language}")
+@app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, language: str = "fr"):
     await ws_manager.connect(websocket, language)
     websocket_queue = async_queue.Queue()

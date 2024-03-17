@@ -27,18 +27,30 @@ class TranslationConsumer:
 
                 # Extract the 'translatedText' field
                 translated_text_json = translated_data.get("translatedText", "{}")
-
+                inner_original_data = json.loads(text_to_translate)
+                actual_original_text = str(inner_original_data.get("text", ""))
+                print("Original text:", actual_original_text)
                 # Parse the 'translatedText' string as JSON
                 inner_translated_data = json.loads(translated_text_json)
-
+                
                 # Extract the actual text (e.g., "texte") from the inner JSON
                 actual_translated_text = str(inner_translated_data.get("texte", ""))
-
+                
                 print("Translated text:", actual_translated_text)
 
                 if actual_translated_text:
+                    # Create a JSON object with the original text, translated text, and speaker name
+                    data_to_send = {
+                        "originalText": actual_original_text,
+                        "translatedText": actual_translated_text,
+
+                    }
+
                     # Put the actual translated text into the WebSocket queue
-                    self.websocket_queue.put(actual_translated_text)
+                    
+                    json_data_to_send = json.dumps(data_to_send)
+                    
+                    self.websocket_queue.put(json_data_to_send)
                 else:
                     print("No actual translated text found in the response.")
             except json.JSONDecodeError:
