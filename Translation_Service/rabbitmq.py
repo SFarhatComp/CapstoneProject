@@ -4,7 +4,7 @@ import requests
 import json
 import aioredis
 
-URL = "http://localhost:5000/translate"
+URL = "http://0.0.0.0:5000/translate"
 
 class TranslationConsumer:
     def __init__(self, language, websocket_manager, redis):
