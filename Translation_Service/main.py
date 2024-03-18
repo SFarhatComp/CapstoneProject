@@ -47,8 +47,4 @@ async def get_speakers():
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 if __name__ == "__main__":
     import uvicorn
-<<<<<<< HEAD
     uvicorn.run(app, host="10.0.0.100", port=8001)
-=======
-    uvicorn.run(app, host="10.0.0.52", port=8001)
->>>>>>> 4e62683 (Aio Pika changes)
