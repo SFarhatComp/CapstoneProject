@@ -48,7 +48,7 @@ def general_set_up():
 
     # Set up audio input from microphone
     audio_input = pyaudio.PyAudio()
-    stream = audio_input.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=8000)
+    stream = audio_input.open(format=pyaudio.paInt16, channels=1, rate=16000, input=True, frames_per_buffer=4000)
 
     # Establish a connection with RabbitMQ server
     connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
@@ -65,7 +65,7 @@ def send_message(recognizer, stream , exchange_name, channel):
     while status_var:
         try:
             # This is mic 
-            data = stream.read(8000)         
+            data = stream.read(4000)         
             if len(data) > 0:
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
@@ -106,7 +106,7 @@ def main():
     global recognizer, stream , exchange_name, chanel
     recognizer, stream , exchange_name, chanel = general_set_up()
     import uvicorn
-    uvicorn.run(app, host="10.0.0.100", port=8000)
+    uvicorn.run(app, host="10.0.0.52", port=8000)
 
 if __name__== "__main__":
     main()
