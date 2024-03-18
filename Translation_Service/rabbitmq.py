@@ -2,7 +2,7 @@ import aio_pika
 import httpx
 import requests
 import json
-import aioredis
+from redis import asyncio as aioredis
 
 URL = "http://0.0.0.0:5000/translate"
 
@@ -62,8 +62,9 @@ class TranslationConsumer:
                                     inner_translated_data = json.loads(translated_text_json)
                                     actual_translated_text = str(inner_translated_data.get("texto", ""))
                                     print("setting cache key", cache_key)
+                                    print(f"Text {actual_translated_text}")
                                     await self.redis.set(cache_key, actual_translated_text)
-
+                                    print("Text was cached")
 
                             else:
                                 print("No translating text available.")
@@ -75,7 +76,7 @@ class TranslationConsumer:
                 "translatedText": actual_translated_text,
                 }
                 json_data_to_send = json.dumps(data_to_send)
-
+                print(f"Translated text {actual_translated_text}")
                 await self.websocket_manager.broadcast(json_data_to_send, self.language)
 
 async def setup_rabbitmq_consumer(language, websocket_manager):
