@@ -106,7 +106,11 @@ def main():
     global recognizer, stream , exchange_name, chanel
     recognizer, stream , exchange_name, chanel = general_set_up()
     import uvicorn
+<<<<<<< HEAD
     uvicorn.run(app, host="10.0.0.100", port=8000)
+=======
+    uvicorn.run(app, host="10.0.0.52", port=8000)
+>>>>>>> 4e62683 (Aio Pika changes)
 
 if __name__== "__main__":
     main()
