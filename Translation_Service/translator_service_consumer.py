@@ -8,7 +8,7 @@ from starlette.websockets import WebSocketDisconnect
 import queue as async_queue
 
 app = FastAPI()
-URL = "http://localhost:5000/translate"
+URL = "http://0.0.0.0:5000/translate"
 
 
 

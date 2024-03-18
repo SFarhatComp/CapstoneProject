@@ -8,6 +8,8 @@ class TranslationConsumer:
     def __init__(self, language, websocket_queue):
 
         self.language = language
+
+        print("TranslationConsumer initialized with language:", language)
         self.websocket_queue = websocket_queue
 
     def translate(self, ch, method, properties, body):
@@ -24,17 +26,29 @@ class TranslationConsumer:
         if response.status_code == 200:
             try:
                 translated_data = response.json()
-
-                # Extract the 'translatedText' field
-                translated_text_json = translated_data.get("translatedText", "{}")
+                print("Translated data:", translated_data)
                 inner_original_data = json.loads(text_to_translate)
                 actual_original_text = str(inner_original_data.get("text", ""))
                 print("Original text:", actual_original_text)
-                # Parse the 'translatedText' string as JSON
-                inner_translated_data = json.loads(translated_text_json)
+
+                if self.language == "fr" :# Extract the actual text (e.g., "texte") from the inner JSON
+                    text_to_translate = translated_data.get("translatedText", "{}")
+                    inner_translated_data = json.loads(text_to_translate)
+                    actual_translated_text = str(inner_translated_data.get("texte", ""))
                 
-                # Extract the actual text (e.g., "texte") from the inner JSON
-                actual_translated_text = str(inner_translated_data.get("texte", ""))
+                elif self.language == "es" :
+                    translated_text_str = translated_data.get('translatedText').replace('{}\n', '').replace('\n}', '')
+                    # Convert the cleaned string to a valid JSON object
+                    translated_text_json = '{' + translated_text_str + '}'
+                    # Parse the JSON string
+                    inner_translated_data = json.loads(translated_text_json)
+                    actual_translated_text = str(inner_translated_data.get("texto", ""))
+               
+               
+                elif self.language == "it" :
+                    actual_translated_text = str(inner_translated_data.get("testo", ""))
+                elif self.language == "en" :
+                    actual_translated_text = actual_original_text
                 
                 print("Translated text:", actual_translated_text)
 
