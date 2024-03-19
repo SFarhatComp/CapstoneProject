@@ -79,12 +79,14 @@ def send_message(recognizer, stream , exchange_name, channel):
             break
     # Send a message to the 'translate' queue
     print("Closing the connection")
-    
+
+
+active_speaker = None
 
 @app.post("/speak/")
 async def speak(item: Item):
-    global status_var
-    
+    global active_speaker
+    active_speaker = item.name
     print("Received request to speak from {item.name}")
     print("Buffer cleared")
     stream.stop_stream()
@@ -92,11 +94,17 @@ async def speak(item: Item):
     # Your existing code to set up and send message 
     thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
     thread.start()
-    
+
+
+    return {"message": f"Started speaking for {item.name}"}
+
+
+@app.get("/stream_speaker/")
+async def stream_speaker(item: Item):
     def event_stream():
         while True:
-            # Send the name of the active speaker
-            yield f"data: {item.name}\n\n"
+            if active_speaker is not None:
+                yield f"data: {active_speaker}\n\n"
             time.sleep(1)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
