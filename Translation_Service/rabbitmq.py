@@ -45,7 +45,11 @@ class TranslationConsumer:
                 }
                 
                 async with httpx.AsyncClient() as client:
-                    response = await client.post(URL, json=data)
+                    try:
+                        response = await client.post(URL, json=data,timeout=5.0)
+                    except httpx.ReadTimeout:
+                        print("Request Timed Out")
+                
                     if response.status_code == 200:
                         try:
                             response_data = response.json()
