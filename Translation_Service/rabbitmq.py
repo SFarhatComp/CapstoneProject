@@ -18,7 +18,9 @@ class TranslationConsumer:
         async with message.process():
             print("Starting translation")
             body_str = message.body.decode()
-            text_to_translate,speaker_name = body_str
+            result_list = json.loads(body_str)
+            text_to_translate = result_list[0]
+            speaker_name = result_list[1]
             print(speaker_name)
             inner_original_data = json.loads(text_to_translate)
             actual_original_text = str(inner_original_data.get("text", ""))

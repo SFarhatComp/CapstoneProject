@@ -3,6 +3,7 @@ import pika
 import threading
 import os
 import vosk
+import json
 import asyncio
 import pyaudio
 from fastapi import FastAPI
@@ -73,7 +74,7 @@ def send_message(recognizer, stream , exchange_name, channel,item_name):
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
                     
-                    result = [result, item_name]
+                    result = json.dumps([result, item_name])
                     print(result)
                     # Sending a message to the Exchange
                     channel.basic_publish(exchange=exchange_name,routing_key='', body=result)
@@ -124,7 +125,7 @@ def main():
     global recognizer, stream , exchange_name, chanel
     recognizer, stream , exchange_name, chanel = general_set_up()
     import uvicorn
-    uvicorn.run(app, host="10.0.0.52", port=8000)
+    uvicorn.run(app, host="10.0.0.100", port=8000)
 
 if __name__== "__main__":
     main()
