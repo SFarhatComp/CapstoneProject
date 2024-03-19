@@ -3,6 +3,7 @@ from typing import Dict, Set
 import os
 import logging
 import traceback
+from datetime import datetime
 logging.basicConfig(level=logging.INFO)
 
 class WebSocketConnectionManager:
@@ -22,7 +23,7 @@ class WebSocketConnectionManager:
                 del self.active_connections[language]
 
 
-    async def broadcast(self, message: str, language: str):
+    async def broadcast(self, message: str, language: str , active_speaker: str):
         if language in self.active_connections:
             disconnected_websockets = set()
             for speaker, websocket in self.active_connections[language].items():
@@ -31,8 +32,10 @@ class WebSocketConnectionManager:
                     print(message)
                     await websocket.send_text(message)
 
-                    with open(f"{language}.txt", "a") as log_file:
-                        log_file.write(message + os.linesep)
+                    today = datetime.now().strftime('%Y-%m-%d')
+
+                    with open(f"{speaker}_{language}_{today}.txt", "a") as log_file:
+                        log_file.write(f"{active_speaker} : {message}" + os.linesep)
                 except Exception as e:
                     # Assuming you want to log or handle the exception
                     print(f"Error sending message to {speaker}: {e}")
