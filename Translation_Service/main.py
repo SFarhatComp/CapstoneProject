@@ -28,8 +28,9 @@ async def websocket_endpoint(websocket: WebSocket, language: str = "fr" , speake
         while True:
             # Keeping the connection open
             await asyncio.sleep(10)
-    except WebSocketDisconnect:
-        ws_manager.disconnect(websocket, language)
+    except WebSocketDisconnect as e:
+        print(f"WebSocketDisconnect: {e}")
+        ws_manager.disconnect(websocket, language, speaker)
     finally:
         consumer_task.cancel()
 
@@ -47,4 +48,4 @@ async def get_speakers():
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="10.0.0.100", port=8001)
+    uvicorn.run(app, host="10.0.0.52", port=8001)
