@@ -109,18 +109,6 @@ async def speak(item: Item):
     return {"success": True}
 
 
-@app.get("/stream_speaker/")
-async def stream_speaker():
-    async def event_stream():
-        while True:
-            if active_speaker is not None:
-                yield f"data: {active_speaker}\n\n"
-            await asyncio.sleep(1)
-
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
-
-
-
 def main():
     global recognizer, stream , exchange_name, chanel
     recognizer, stream , exchange_name, chanel = general_set_up()

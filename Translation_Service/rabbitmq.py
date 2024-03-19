@@ -10,7 +10,8 @@ class TranslationConsumer:
     def __init__(self, language, websocket_manager, redis):
         self.language = language
         self.websocket_manager = websocket_manager
-        self.redis = redis  # Initialize Redis connection as None
+        self.redis = redis
+        self.speaker_name = ""  # Initialize Redis connection as None
 
 
     async def translate(self, message: aio_pika.IncomingMessage):
@@ -20,8 +21,8 @@ class TranslationConsumer:
             body_str = message.body.decode()
             result_list = json.loads(body_str)
             text_to_translate = result_list[0]
-            speaker_name = result_list[1]
-            print(speaker_name)
+            self.speaker_name = result_list[1]
+
             inner_original_data = json.loads(text_to_translate)
             actual_original_text = str(inner_original_data.get("text", ""))
             translated_text = ""
@@ -78,6 +79,7 @@ class TranslationConsumer:
                 data_to_send = {
                 "originalText": actual_original_text,
                 "translatedText": actual_translated_text,
+                "speaker": self.speaker_name,
                 }
                 json_data_to_send = json.dumps(data_to_send)
                 print(f"Translated text {actual_translated_text}")
