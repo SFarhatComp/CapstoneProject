@@ -1,5 +1,6 @@
 from fastapi import WebSocket
 from typing import Dict, Set
+import os
 import logging
 import traceback
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +30,9 @@ class WebSocketConnectionManager:
                     print(f"Sending message to {speaker}")
                     print(message)
                     await websocket.send_text(message)
+
+                    with open(f"{language}.txt", "a") as log_file:
+                        log_file.write(message + os.linesep)
                 except Exception as e:
                     # Assuming you want to log or handle the exception
                     print(f"Error sending message to {speaker}: {e}")

@@ -30,7 +30,7 @@ app.add_middleware(
 )
 
 class Item(BaseModel):
-    id: int
+
     name : str
     language: str
 
@@ -95,13 +95,11 @@ async def speak(item: Item):
         print("Buffer cleared")
         stream.stop_stream()
         stream.start_stream()
-        # Your existing code to set up and send message
         status_var = True 
         thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
         thread.start()
         
     else:
-        #Stop process. 
         print("Stopping to send messages...")
         status_var = False
 
