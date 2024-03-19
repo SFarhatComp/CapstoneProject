@@ -38,6 +38,7 @@ class TranslationConsumer:
                         translated_text_json = response_data.get("translatedText", "")
                         
 
+
                         if self.language == "fr":
                             # French translation logic
                             translated_text = response_data.get("translatedText", "")
