@@ -63,7 +63,7 @@ def general_set_up():
 
     return recognizer, stream, exchange_name, channel
 
-def send_message(recognizer, stream , exchange_name, channel):
+def send_message(recognizer, stream , exchange_name, channel,item_name):
     
     while status_var:
         try:
@@ -72,6 +72,8 @@ def send_message(recognizer, stream , exchange_name, channel):
             if len(data) > 0:
                 if recognizer.AcceptWaveform(data):
                     result = recognizer.Result()
+                    
+                    result = [result, item_name]
                     print(result)
                     # Sending a message to the Exchange
                     channel.basic_publish(exchange=exchange_name,routing_key='', body=result)
@@ -96,7 +98,7 @@ async def speak(item: Item):
         stream.stop_stream()
         stream.start_stream()
         status_var = True 
-        thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
+        thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel,item.name))
         thread.start()
         
     else:
