@@ -3,6 +3,7 @@ import pika
 import threading
 import os
 import vosk
+import asyncio
 import pyaudio
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -82,7 +83,7 @@ def send_message(recognizer, stream , exchange_name, channel):
     print("Closing the connection")
     
 
-    
+
 active_speaker = None
 @app.post("/speak")
 async def speak(item: Item):
@@ -109,11 +110,11 @@ async def speak(item: Item):
 
 @app.get("/stream_speaker/")
 async def stream_speaker():
-    def event_stream():
+    async def event_stream():
         while True:
             if active_speaker is not None:
                 yield f"data: {active_speaker}\n\n"
-            time.sleep(1)
+            await asyncio.sleep(1)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
