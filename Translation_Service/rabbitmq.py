@@ -86,11 +86,11 @@ class TranslationConsumer:
                 data_to_send = {
                 "originalText": actual_original_text,
                 "translatedText": actual_translated_text,
-                "speaker": self.speaker_name,
+                "name": self.speaker_name,
                 }
                 json_data_to_send = json.dumps(data_to_send)
                 print(f"Translated text {actual_translated_text}")
-                await self.websocket_manager.broadcast(json_data_to_send, self.language)
+                await self.websocket_manager.broadcast(json_data_to_send, self.language,self.speaker_name)
 
 async def setup_rabbitmq_consumer(language, websocket_manager):
     connection = await aio_pika.connect_robust("amqp://guest:guest@localhost/")

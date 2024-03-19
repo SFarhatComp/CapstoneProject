@@ -15,6 +15,7 @@ class WebSocketConnectionManager:
         if language not in self.active_connections:
             self.active_connections[language] = {}
         self.active_connections[language][speaker] = websocket
+        print(f"List of connected speakers : {self.active_connections}")
 
     def disconnect(self, websocket: WebSocket, language: str, speaker: str):
         if language in self.active_connections and speaker in self.active_connections[language]:
@@ -47,5 +48,5 @@ class WebSocketConnectionManager:
         speakers = []
         for language, speakers_dict in self.active_connections.items():
             for speaker in speakers_dict:
-                speakers.append(f"{speaker} - {language}")
+                speakers.append(f"{speaker}-{language}")
         return speakers
