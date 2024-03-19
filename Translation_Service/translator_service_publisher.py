@@ -6,8 +6,9 @@ import vosk
 import pyaudio
 from fastapi import FastAPI
 from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
 
 status_var = False
@@ -79,28 +80,35 @@ def send_message(recognizer, stream , exchange_name, channel):
             break
     # Send a message to the 'translate' queue
     print("Closing the connection")
+    
 
-
+    
 active_speaker = None
-
-@app.post("/speak/")
+@app.post("/speak")
 async def speak(item: Item):
+    global status_var
     global active_speaker
-    active_speaker = item.name
-    print("Received request to speak from {item.name}")
-    print("Buffer cleared")
-    stream.stop_stream()
-    stream.start_stream()
-    # Your existing code to set up and send message 
-    thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
-    thread.start()
+    if not status_var:
+        print("Received request to speak from {item.name}")
+        active_speaker = item.name
+        print("Buffer cleared")
+        stream.stop_stream()
+        stream.start_stream()
+        # Your existing code to set up and send message
+        status_var = True 
+        thread = threading.Thread(target=send_message, args=(recognizer, stream , exchange_name, chanel))
+        thread.start()
+        
+    else:
+        #Stop process. 
+        print("Stopping to send messages...")
+        status_var = False
 
-
-    return {"message": f"Started speaking for {item.name}"}
+    return {"success": True}
 
 
 @app.get("/stream_speaker/")
-async def stream_speaker(item: Item):
+async def stream_speaker():
     def event_stream():
         while True:
             if active_speaker is not None:
@@ -108,6 +116,8 @@ async def stream_speaker(item: Item):
             time.sleep(1)
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+
 
 def main():
     global recognizer, stream , exchange_name, chanel
